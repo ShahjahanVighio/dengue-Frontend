@@ -1,21 +1,26 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Activity, Send, User, Bot, AlertTriangle, ShieldCheck, 
-  RefreshCw, BookOpen, ClipboardCheck, MessageSquare, Globe 
+import {
+  Activity, Send, User, Bot, AlertTriangle, ShieldCheck,
+  RefreshCw, BookOpen, ClipboardCheck, MessageSquare, Globe,
+  Phone, MapPin, Clock, ChevronRight
 } from 'lucide-react';
 
-// Language Localization Dictionary
 const langData = {
   en: {
     dir: 'ltr',
     title: 'DengueAlert PK',
-    subtitle: 'Salim Habib University AI Core Deployment',
+    subtitle: 'Salim Habib University — AI Core Deployment',
+    utilBar: {
+      // emergency: 'Emergency: 021-111-911-911',
+      // hours: 'Mon – Sat, 8am – 8pm',
+      // location: 'Karachi, Pakistan',
+    },
     tabs: { info: 'Dengue Info', form: 'Standard Diagnostic', chat: 'AI Chatbot' },
     info: {
       title: 'Dengue Knowledge Base',
-      desc: 'Understand the virus, vectors, and safety protocols.',
+      desc: 'Understand the virus, vectors, and safety protocols to protect yourself and your community.',
       cards: [
         { t: 'Transmission', d: 'Spread by the bite of an infected Aedes aegypti mosquito. They usually bite during the day.' },
         { t: 'Key Symptoms', d: 'High fever, severe headache, retro-orbital pain (behind eyes), severe muscle/joint pain, and skin rashes.' },
@@ -25,34 +30,39 @@ const langData = {
     },
     form: {
       title: 'Standard Diagnostic Assessment',
-      desc: 'Select your clinical parameters manually for an automated assessment.',
+      desc: 'Select your clinical parameters manually for an automated risk assessment.',
       fever: 'High Fever',
       headache: 'Severe Headache',
-      jointPain: 'Severe Joint/Muscle Pain',
-      bleeding: 'Mild Bleeding Signs (Nose/Gums)',
+      jointPain: 'Severe Joint / Muscle Pain',
+      bleeding: 'Mild Bleeding Signs (Nose / Gums)',
       breathing: 'Difficulty Breathing',
       waterZone: 'Living near Stagnant Water Zone',
-      btn: 'Run Diagnostic Vector'
+      btn: 'Run Diagnostic Assessment'
     },
     chat: {
       init: 'Salam! I am your Dengue Alert PK Health Assistant. Is this health assessment for a human or an animal?',
-      placeholder: 'Describe your symptoms or reply to the assistant...',
+      placeholder: 'Describe your symptoms or reply to the assistant…',
       onlineMsg: 'Notice: The veterinary module is currently offline. We are only processing human clinical profiles. Is the patient a human?'
     },
     ui: {
       reset: 'Reset',
-      loading: 'Analyzing engine features...',
-      allowed: 'Allowed Management Drugs',
-      forbidden: 'Strictly Contraindicated (Forbidden)',
+      loading: 'Analysing clinical parameters…',
+      allowed: 'Permitted Medications',
+      forbidden: 'Strictly Contraindicated',
       homeCare: 'Home Care Monitoring:',
       referral: 'Clinical Referral Pathway:',
-      disclaimer: 'Disclaimer: This assessment is an AI-generated suggestion for reference. It is not a replacement for professional clinical laboratory tests.'
+      disclaimer: 'This assessment is an AI-generated suggestion for reference only. It is not a replacement for professional clinical laboratory tests or physician consultation.'
     }
   },
   ur: {
     dir: 'rtl',
     title: 'ڈینگی الرٹ PK',
-    subtitle: 'سلیم حبیب یونیورسٹی اے آئی کور ڈپلائمنٹ',
+    subtitle: 'سلیم حبیب یونیورسٹی — اے آئی کور ڈپلائمنٹ',
+    utilBar: {
+      emergency: 'ایمرجنسی: 021-111-911-911',
+      hours: 'پیر – ہفتہ، صبح 8 – شام 8',
+      location: 'کراچی، پاکستان',
+    },
     tabs: { info: 'معلومات', form: 'فارم ٹیسٹنگ', chat: 'اے آئی چیٹ بوٹ' },
     info: {
       title: 'ڈینگی معلومات مرکز',
@@ -84,10 +94,10 @@ const langData = {
       reset: 'دوبارہ شروع کریں',
       loading: 'اے آئی انجن تجزیہ کر رہا ہے...',
       allowed: 'تجویز کردہ ادویات',
-      forbidden: 'ممنوعہ ادویات (سختی سے پرہیز کریں)',
-      homeCare: 'گھریلو دیکھ بھال اور نگرانی:',
-      referral: 'طبی مشورہ اور راستہ:',
-      disclaimer: 'تنبیہ: یہ تشخیص صرف ابتدائی رہنمائی کے لیے ایک اے آئی سے تیار کردہ تجویز ہے۔ یہ کسی پیشہ ور طبی معائنے یا لیبارٹری ٹیسٹ کا متبادل نہیں ہے۔'
+      forbidden: 'ممنوعہ ادویات',
+      homeCare: 'گھریلو دیکھ بھال:',
+      referral: 'طبی مشورہ:',
+      disclaimer: 'یہ تشخیص صرف ابتدائی رہنمائی کے لیے ہے۔ یہ کسی پیشہ ور طبی معائنے یا لیبارٹری ٹیسٹ کا متبادل نہیں ہے۔'
     }
   }
 };
@@ -99,20 +109,38 @@ interface Message {
   data?: any;
 }
 
+const C = {
+  teal: '#005C50',
+  tealLight: '#E8F4F2',
+  tealMid: '#0B8C7A',
+  red: '#9B2335',
+  redLight: '#FBF0F1',
+  amber: '#B85C00',
+  amberLight: '#FFF5E6',
+  green: '#1A6B3C',
+  greenLight: '#EBF5EF',
+  border: '#DDE4E2',
+  borderStrong: '#B0C4C0',
+  bg: '#F5F7F6',
+  bgWhite: '#FFFFFF',
+  textPrimary: '#1A2B28',
+  textSecondary: '#4A6560',
+  textMuted: '#7A9490',
+};
+
 export default function Home() {
   const [lang, setLang] = useState<'en' | 'ur'>('en');
   const [activeTab, setActiveTab] = useState<'info' | 'form' | 'chat'>('info');
   const t = langData[lang];
 
-  // Chat State Management
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [chatStep, setChatStep] = useState<'species' | 'symptoms' | 'complete'>('species');
 
-  // Form Checklist State
   const [formSymptoms, setFormSymptoms] = useState({
-    fever: false, headache: false, jointPain: false, bleeding: false, breathing: false, waterZone: false
+    fever: false, headache: false, jointPain: false,
+    bleeding: false, breathing: false, waterZone: false
   });
   const [formResult, setFormResult] = useState<any>(null);
   const [formLoading, setFormLoading] = useState(false);
@@ -129,37 +157,32 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, chatLoading]);
 
-  const toggleLanguage = () => {
-    setLang((prev) => (prev === 'en' ? 'ur' : 'en'));
-  };
+  const toggleLanguage = () => setLang(prev => prev === 'en' ? 'ur' : 'en');
 
-  // Form Implementation Engine (Aligned strictly with API pipeline schema)
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
     setFormResult(null);
-
     const payload = {
       symptoms: {
         fever: formSymptoms.fever ? 1 : 0,
         headache: formSymptoms.headache ? 1 : 0,
-        retro_orbital_pain: 0, 
+        retro_orbital_pain: 0,
         muscle_joint_pain: formSymptoms.jointPain ? 1 : 0,
         rash: 0, nausea: 0, vomiting: 0,
         mild_bleeding: formSymptoms.bleeding ? 1 : 0,
-        easy_bruising: 0, fatigue: 0, abdominal_pain: 0, 
+        easy_bruising: 0, fatigue: 0, abdominal_pain: 0,
         persistent_vomiting: 0, mucous_membrane_bleeding: 0,
         difficulty_breath: formSymptoms.breathing ? 1 : 0,
         restlessness: 0
       },
       risk_factors: {
-        recent_mosquito_bites: 1, 
+        recent_mosquito_bites: 1,
         travel_to_endemic_areas: 0,
         stagnant_water_zone: formSymptoms.waterZone ? 1 : 0,
         low_platelet_history: 0
       }
     };
-
     try {
       const res = await fetch('https://dengue-backend-production.up.railway.app/predict/human', {
         method: 'POST',
@@ -167,9 +190,7 @@ export default function Home() {
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      if (data.status === 'success') {
-        setFormResult(data);
-      }
+      if (data.status === 'success') setFormResult(data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -177,52 +198,55 @@ export default function Home() {
     }
   };
 
-  // Natural Language Chat Analysis Vector
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim() || chatLoading) return;
-
     const userText = chatInput.trim();
-    setMessages((prev) => [...prev, { sender: 'user', text: userText }]);
+    setMessages(prev => [...prev, { sender: 'user', text: userText }]);
     setChatInput('');
 
     if (chatStep === 'species') {
-      const textLower = userText.toLowerCase();
-      if (textLower.includes('animal') || textLower.includes('janwar')) {
+      const lower = userText.toLowerCase();
+      if (lower.includes('animal') || lower.includes('janwar')) {
         setChatLoading(true);
         setTimeout(() => {
           setChatLoading(false);
-          setMessages((prev) => [...prev, { sender: 'bot', text: t.chat.onlineMsg }]);
+          setMessages(prev => [...prev, { sender: 'bot', text: t.chat.onlineMsg }]);
         }, 600);
       } else {
         setChatStep('symptoms');
-        setMessages((prev) => [
-          ...prev,
-          { sender: 'bot', text: lang === 'en' ? 'Understood. Please describe your symptoms naturally now.' : 'بہتر۔ اب اپنی علامات تفصیلاً بیان کریں۔' }
-        ]);
+        setMessages(prev => [...prev, {
+          sender: 'bot',
+          text: lang === 'en'
+            ? 'Understood. Please describe your symptoms in detail.'
+            : 'بہتر۔ اب اپنی علامات تفصیلاً بیان کریں۔'
+        }]);
       }
     } else if (chatStep === 'symptoms') {
       setChatLoading(true);
-      const textLower = userText.toLowerCase();
-
+      const lower = userText.toLowerCase();
       const payload = {
         symptoms: {
-          fever: textLower.includes('fever') || textLower.includes('bukhar') ? 1 : 0,
-          headache: textLower.includes('headache') || textLower.includes('sar dard') ? 1 : 0,
-          retro_orbital_pain: textLower.includes('eye') || textLower.includes('ankh') ? 1 : 0,
-          muscle_joint_pain: textLower.includes('joint') || textLower.includes('pain') || textLower.includes('haddi') ? 1 : 0,
-          rash: textLower.includes('rash') || textLower.includes('daane') ? 1 : 0,
-          nausea: textLower.includes('nausea') || textLower.includes('matli') ? 1 : 0,
-          vomiting: textLower.includes('vomit') || textLower.includes('ulti') ? 1 : 0,
-          mild_bleeding: textLower.includes('bleed') || textLower.includes('khoon') ? 1 : 0,
-          easy_bruising: 0, fatigue: 0, abdominal_pain: 0, persistent_vomiting: 0,
-          mucous_membrane_bleeding: 0, 
-          difficulty_breath: textLower.includes('saans') || textLower.includes('breath') ? 1 : 0,
+          fever: lower.includes('fever') || lower.includes('bukhar') ? 1 : 0,
+          headache: lower.includes('headache') || lower.includes('sar dard') ? 1 : 0,
+          retro_orbital_pain: lower.includes('eye') || lower.includes('ankh') ? 1 : 0,
+          muscle_joint_pain: lower.includes('joint') || lower.includes('pain') || lower.includes('haddi') ? 1 : 0,
+          rash: lower.includes('rash') || lower.includes('daane') ? 1 : 0,
+          nausea: lower.includes('nausea') || lower.includes('matli') ? 1 : 0,
+          vomiting: lower.includes('vomit') || lower.includes('ulti') ? 1 : 0,
+          mild_bleeding: lower.includes('bleed') || lower.includes('khoon') ? 1 : 0,
+          easy_bruising: 0, fatigue: 0, abdominal_pain: 0,
+          persistent_vomiting: 0, mucous_membrane_bleeding: 0,
+          difficulty_breath: lower.includes('saans') || lower.includes('breath') ? 1 : 0,
           restlessness: 0
         },
-        risk_factors: { recent_mosquito_bites: 1, travel_to_endemic_areas: 0, stagnant_water_zone: 0, low_platelet_history: 0 }
+        risk_factors: {
+          recent_mosquito_bites: 1,
+          travel_to_endemic_areas: 0,
+          stagnant_water_zone: 0,
+          low_platelet_history: 0
+        }
       };
-
       try {
         const res = await fetch('https://dengue-backend-production.up.railway.app/predict/human', {
           method: 'POST',
@@ -232,7 +256,12 @@ export default function Home() {
         const data = await res.json();
         if (data.status === 'success') {
           setChatStep('complete');
-          setMessages((prev) => [...prev, { sender: 'bot', text: 'Pipeline Execution Completed.', isResult: true, data }]);
+          setMessages(prev => [...prev, {
+            sender: 'bot',
+            text: 'Assessment complete. Results below:',
+            isResult: true,
+            data
+          }]);
         }
       } catch (err) {
         console.error(err);
@@ -242,117 +271,353 @@ export default function Home() {
     }
   };
 
-  const ResultCard = ({ data }: { data: any }) => (
-    <div className="space-y-4 mt-4 animate-in fade-in duration-300">
-      <div className={`p-5 rounded-2xl border-2 border-l-8 ${
-        data.severity_level === 'severe' ? 'bg-red-950/30 border-red-900 text-red-200 border-l-red-500' : 
-        data.severity_level === 'moderate' ? 'bg-amber-950/30 border-amber-900 text-amber-200 border-l-amber-500' : 
-        'bg-emerald-950/30 border-emerald-900 text-emerald-200 border-l-emerald-500'
-      }`}>
-        <div className="text-4xl font-black mb-1">{data.risk_score_percentage}%</div>
-        <div className="text-xs font-extrabold capitalize flex items-center gap-1.5">
-          <AlertTriangle size={14} /> Severity Assessment: {data.severity_level}
+  const ResultCard = ({ data }: { data: any }) => {
+    const isSevere = data.severity_level === 'severe';
+    const isModerate = data.severity_level === 'moderate';
+    const severityColor = isSevere ? C.red : isModerate ? C.amber : C.green;
+    const severityBg = isSevere ? C.redLight : isModerate ? C.amberLight : C.greenLight;
+
+    return (
+      <div style={{ marginTop: 16 }}>
+        <div style={{
+          background: severityBg,
+          border: `1px solid ${severityColor}30`,
+          borderLeft: `4px solid ${severityColor}`,
+          borderRadius: 4,
+          padding: '16px 20px',
+          marginBottom: 12,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 20
+        }}>
+          <div>
+            <div style={{ fontSize: 36, fontWeight: 800, color: severityColor, lineHeight: 1, fontFamily: 'Arial, sans-serif' }}>
+              {data.risk_score_percentage}%
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: severityColor, textTransform: 'uppercase' as const, letterSpacing: 1, marginTop: 4, fontFamily: 'Arial, sans-serif' }}>
+              Risk Score
+            </div>
+          </div>
+          <div style={{ borderLeft: `1px solid ${severityColor}30`, paddingLeft: 20 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: severityColor, textTransform: 'capitalize' as const, fontFamily: 'Arial, sans-serif' }}>
+              Severity: {data.severity_level}
+            </div>
+            <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 2, fontFamily: 'Arial, sans-serif' }}>
+              AI-generated clinical assessment
+            </div>
+          </div>
+        </div>
+
+        <div style={{ background: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{
+            background: C.teal, padding: '10px 16px',
+            fontSize: 12, fontWeight: 700, color: '#ffffff',
+            letterSpacing: 0.5, textTransform: 'uppercase' as const, fontFamily: 'Arial, sans-serif'
+          }}>
+            Treatment Guidance
+          </div>
+          <div style={{ padding: '14px 16px', display: 'grid', gap: 12 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <ShieldCheck size={14} color={C.green} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: C.green, textTransform: 'uppercase' as const, letterSpacing: 0.5, fontFamily: 'Arial, sans-serif' }}>
+                  {t.ui.allowed}
+                </span>
+              </div>
+              <div style={{ fontSize: 13, color: C.textPrimary, background: C.greenLight, padding: '6px 10px', borderRadius: 3 }}>
+                {data.treatment_plan.medications.allowed.length > 0
+                  ? data.treatment_plan.medications.allowed.join(', ')
+                  : 'None'}
+              </div>
+            </div>
+
+            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <AlertTriangle size={14} color={C.red} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: C.red, textTransform: 'uppercase' as const, letterSpacing: 0.5, fontFamily: 'Arial, sans-serif' }}>
+                  {t.ui.forbidden}
+                </span>
+              </div>
+              <div style={{ fontSize: 13, color: C.textPrimary, background: C.redLight, padding: '6px 10px', borderRadius: 3 }}>
+                {data.treatment_plan.medications.forbidden.length > 0
+                  ? data.treatment_plan.medications.forbidden.join(', ')
+                  : 'None'}
+              </div>
+            </div>
+
+            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+              <div style={{ fontSize: 12, marginBottom: 4, fontFamily: 'Arial, sans-serif' }}>
+                <strong style={{ color: C.textPrimary }}>{t.ui.homeCare}</strong>
+              </div>
+              <div style={{ fontSize: 13, color: C.textPrimary, lineHeight: 1.6, fontFamily: 'Arial, sans-serif' }}>
+                {data.treatment_plan.home_care}
+              </div>
+            </div>
+
+            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+              <div style={{ fontSize: 12, marginBottom: 4, fontFamily: 'Arial, sans-serif' }}>
+                <strong style={{ color: C.textPrimary }}>{t.ui.referral}</strong>
+              </div>
+              <div style={{ fontSize: 13, color: C.textPrimary, lineHeight: 1.6, fontFamily: 'Arial, sans-serif' }}>
+                {data.treatment_plan.referral}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 space-y-3">
-        <h3 className="font-bold text-white text-sm flex items-center gap-2"><ShieldCheck className="text-emerald-500" size={16} /> {t.ui.allowed}</h3>
-        <span className="text-emerald-400 font-bold text-xs">{data.treatment_plan.medications.allowed.length > 0 ? data.treatment_plan.medications.allowed.join(', ') : 'None'}</span>
-        <h3 className="font-bold text-white text-sm flex items-center gap-2 pt-2 border-t border-neutral-800"><AlertTriangle className="text-red-500" size={16} /> {t.ui.forbidden}</h3>
-        <span className="text-red-400 font-bold text-xs">{data.treatment_plan.medications.forbidden.length > 0 ? data.treatment_plan.medications.forbidden.join(', ') : 'None'}</span>
-        <div className="bg-neutral-950 p-3 rounded-xl border border-neutral-800 text-xs text-neutral-300 mt-2">
-          <strong>{t.ui.homeCare}</strong> {data.treatment_plan.home_care}
-        </div>
-        <div className="bg-neutral-950 p-3 rounded-xl border border-neutral-800 text-xs text-neutral-300">
-          <strong>{t.ui.referral}</strong> {data.treatment_plan.referral}
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
+
+  const infoIconBg = [C.tealLight, C.amberLight, C.greenLight, C.redLight];
+  const infoIconColor = [C.teal, C.amber, C.green, C.red];
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col font-sans selection:bg-blue-500/30" dir={t.dir}>
-      {/* Header Container */}
-      <header className="bg-neutral-900/80 backdrop-blur-md border-b border-neutral-800 p-4 sticky top-0 z-50 flex justify-between items-center shadow-2xl">
-        <div className="flex items-center gap-3">
-          <div className="bg-red-950/60 border border-red-800 p-2 rounded-xl text-red-500 animate-pulse">
-            <Activity size={22} />
+    <div style={{
+      minHeight: '100vh',
+      background: C.bg,
+      color: C.textPrimary,
+      fontFamily: 'Georgia, "Times New Roman", serif',
+      direction: t.dir as any
+    }}>
+
+      {/* Utility Bar */}
+      <div style={{
+        background: C.teal,
+        padding: '7px 0',
+        fontSize: 12,
+        color: 'rgba(255,255,255,0.85)',
+        fontFamily: 'Arial, Helvetica, sans-serif'
+      }}>
+        <div style={{
+          maxWidth: 1100, margin: '0 auto', padding: '0 24px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' as const, gap: 8
+        }}>
+          <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' as const }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Phone size={11} /> {t.utilBar.emergency}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Clock size={11} /> {t.utilBar.hours}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <MapPin size={11} /> {t.utilBar.location}
+            </span>
+          </div>
+          <button
+            onClick={toggleLanguage}
+            style={{
+              background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              color: '#ffffff',
+              padding: '3px 12px',
+              borderRadius: 2,
+              cursor: 'pointer',
+              fontSize: 11,
+              fontFamily: 'Arial, sans-serif',
+              display: 'flex', alignItems: 'center', gap: 5
+            }}
+          >
+            <Globe size={11} />
+            {lang === 'en' ? 'اردو' : 'English'}
+          </button>
+        </div>
+      </div>
+
+      {/* Header */}
+      <header style={{
+        background: C.bgWhite,
+        borderBottom: `3px solid ${C.teal}`,
+        boxShadow: '0 2px 8px rgba(0,92,80,0.08)'
+      }}>
+        <div style={{
+          maxWidth: 1100, margin: '0 auto', padding: '18px 24px',
+          display: 'flex', alignItems: 'center', gap: 14
+        }}>
+          <div style={{
+            width: 52, height: 52,
+            background: C.teal,
+            borderRadius: 3,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <Activity size={26} color="#ffffff" />
           </div>
           <div>
-            <h1 className="text-lg font-black tracking-wider text-white">{t.title}</h1>
-            <p className="text-[11px] text-neutral-400 font-medium tracking-tight">{t.subtitle}</p>
+            <h1 style={{
+              margin: 0, fontSize: 22, fontWeight: 700,
+              color: C.teal, letterSpacing: '-0.3px',
+              fontFamily: 'Georgia, serif'
+            }}>
+              {t.title}
+            </h1>
+            <p style={{
+              margin: 0, fontSize: 12,
+              color: C.textSecondary,
+              fontFamily: 'Arial, sans-serif', marginTop: 2
+            }}>
+              {t.subtitle}
+            </p>
           </div>
-        </div>
-
-        {/* Global Control Cluster */}
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={toggleLanguage}
-            className="flex items-center gap-1.5 text-xs font-bold text-blue-400 hover:text-white px-3 py-2 rounded-xl border border-neutral-800 hover:bg-neutral-800 transition shadow-inner"
-          >
-            <Globe size={14} /> {lang === 'en' ? 'اردو' : 'English'}
-          </button>
         </div>
       </header>
 
-      {/* Navigation Sub-Menu Tab Module */}
-      <nav className="max-w-3xl w-full mx-auto px-4 pt-6 flex gap-2">
-        {(['info', 'form', 'chat'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border font-bold text-xs tracking-wide transition-all duration-200 ${
-              activeTab === tab 
-                ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/10 scale-[1.02]' 
-                : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200'
-            }`}
-          >
-            {tab === 'info' && <BookOpen size={14} />}
-            {tab === 'form' && <ClipboardCheck size={14} />}
-            {tab === 'chat' && <MessageSquare size={14} />}
-            {t.tabs[tab]}
-          </button>
-        ))}
+      {/* Tab Navigation */}
+      <nav style={{ background: C.bgWhite, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', display: 'flex', gap: 0 }}>
+          {(['info', 'form', 'chat'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                borderBottom: activeTab === tab ? `3px solid ${C.teal}` : '3px solid transparent',
+                color: activeTab === tab ? C.teal : C.textSecondary,
+                padding: '14px 22px',
+                fontSize: 13,
+                fontFamily: 'Arial, Helvetica, sans-serif',
+                fontWeight: activeTab === tab ? 700 : 400,
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 7,
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap' as const,
+                marginBottom: -1
+              }}
+            >
+              {tab === 'info' && <BookOpen size={15} />}
+              {tab === 'form' && <ClipboardCheck size={15} />}
+              {tab === 'chat' && <MessageSquare size={15} />}
+              {t.tabs[tab]}
+            </button>
+          ))}
+        </div>
       </nav>
 
-      {/* Main Structural Display Frame */}
-      <main className="flex-1 max-w-3xl w-full mx-auto p-4 flex flex-col justify-start overflow-hidden">
-        
-        {/* Tab 1: Knowledge Hub Display */}
+      {/* Main Content */}
+      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px', minHeight: 'calc(100vh - 200px)' }}>
+
+        {/* TAB 1 — Info */}
         {activeTab === 'info' && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <div className="bg-neutral-900 border border-neutral-800 p-5 rounded-2xl">
-              <h2 className="text-base font-bold text-white mb-1">{t.info.title}</h2>
-              <p className="text-xs text-neutral-400">{t.info.desc}</p>
+          <div>
+            <div style={{ marginBottom: 24 }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8,
+                paddingBottom: 12, borderBottom: `1px solid ${C.border}`
+              }}>
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: C.teal, fontFamily: 'Georgia, serif' }}>
+                  {t.info.title}
+                </h2>
+                <span style={{
+                  background: C.red, color: '#fff',
+                  fontSize: 10, fontWeight: 700, padding: '2px 8px',
+                  borderRadius: 2, fontFamily: 'Arial, sans-serif',
+                  textTransform: 'uppercase' as const, letterSpacing: 0.5
+                }}>
+                  Live Alert
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: 14, color: C.textSecondary, fontFamily: 'Arial, sans-serif', lineHeight: 1.6 }}>
+                {t.info.desc}
+              </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {t.info.cards.map((c, i) => (
-                <div key={i} className="bg-neutral-900/40 border border-neutral-800/80 p-4 rounded-2xl hover:border-neutral-700 transition">
-                  <h3 className="text-xs font-black text-blue-400 mb-1.5 uppercase tracking-wider">{c.t}</h3>
-                  <p className="text-xs text-neutral-300 leading-relaxed text-justify">{c.d}</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+              {t.info.cards.map((card, i) => (
+                <div key={i} style={{
+                  background: C.bgWhite,
+                  border: `1px solid ${C.border}`,
+                  borderTop: `3px solid ${infoIconColor[i]}`,
+                  borderRadius: 3,
+                  padding: '20px 18px'
+                }}>
+                  <div style={{
+                    width: 36, height: 36,
+                    background: infoIconBg[i],
+                    borderRadius: 3,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: 12
+                  }}>
+                    {i === 0 && <Activity size={18} color={infoIconColor[i]} />}
+                    {i === 1 && <ClipboardCheck size={18} color={infoIconColor[i]} />}
+                    {i === 2 && <ShieldCheck size={18} color={infoIconColor[i]} />}
+                    {i === 3 && <AlertTriangle size={18} color={infoIconColor[i]} />}
+                  </div>
+                  <h3 style={{
+                    margin: '0 0 8px', fontSize: 12, fontWeight: 700,
+                    color: infoIconColor[i], fontFamily: 'Arial, sans-serif',
+                    textTransform: 'uppercase' as const, letterSpacing: 0.5
+                  }}>
+                    {card.t}
+                  </h3>
+                  <p style={{ margin: 0, fontSize: 13, color: C.textSecondary, lineHeight: 1.65, fontFamily: 'Arial, sans-serif' }}>
+                    {card.d}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Tab 2: Standard Analytical Form Module */}
+        {/* TAB 2 — Form */}
         {activeTab === 'form' && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <form onSubmit={handleFormSubmit} className="bg-neutral-900 border border-neutral-800 p-5 rounded-2xl space-y-4 shadow-xl">
-              <div>
-                <h2 className="text-base font-bold text-white mb-1">{t.form.title}</h2>
-                <p className="text-xs text-neutral-400">{t.form.desc}</p>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                {(Object.keys(formSymptoms) as Array<keyof typeof formSymptoms>).map((key) => (
-                  <label key={key} className="flex items-center gap-3 bg-neutral-950 p-4 rounded-xl border border-neutral-800 hover:border-neutral-700 transition cursor-pointer">
+          <div style={{ maxWidth: 680 }}>
+            <div style={{ marginBottom: 20, paddingBottom: 14, borderBottom: `1px solid ${C.border}` }}>
+              <h2 style={{ margin: '0 0 6px', fontSize: 20, fontWeight: 700, color: C.teal, fontFamily: 'Georgia, serif' }}>
+                {t.form.title}
+              </h2>
+              <p style={{ margin: 0, fontSize: 13, color: C.textSecondary, fontFamily: 'Arial, sans-serif', lineHeight: 1.5 }}>
+                {t.form.desc}
+              </p>
+            </div>
+
+            <form onSubmit={handleFormSubmit}>
+              <div style={{
+                background: C.bgWhite,
+                border: `1px solid ${C.border}`,
+                borderRadius: 3,
+                overflow: 'hidden',
+                marginBottom: 16
+              }}>
+                <div style={{
+                  background: C.tealLight,
+                  borderBottom: `1px solid ${C.border}`,
+                  padding: '10px 16px',
+                  fontSize: 11, fontWeight: 700,
+                  color: C.teal,
+                  textTransform: 'uppercase' as const,
+                  letterSpacing: 0.5,
+                  fontFamily: 'Arial, sans-serif'
+                }}>
+                  Clinical Parameters
+                </div>
+
+                {(Object.keys(formSymptoms) as Array<keyof typeof formSymptoms>).map((key, idx, arr) => (
+                  <label
+                    key={key}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '13px 16px',
+                      cursor: 'pointer',
+                      borderBottom: idx < arr.length - 1 ? `1px solid ${C.border}` : 'none',
+                      background: formSymptoms[key] ? C.tealLight : 'transparent',
+                      transition: 'background 0.1s'
+                    }}
+                  >
                     <input
                       type="checkbox"
                       checked={formSymptoms[key]}
-                      onChange={(e) => setFormSymptoms(prev => ({ ...prev, [key]: e.target.checked }))}
-                      className="w-4 h-4 rounded text-blue-600 bg-neutral-900 border-neutral-800 focus:ring-0"
+                      onChange={e => setFormSymptoms(prev => ({ ...prev, [key]: e.target.checked }))}
+                      style={{ width: 15, height: 15, accentColor: C.teal, cursor: 'pointer' }}
                     />
-                    <span className="text-xs font-semibold text-neutral-200">
+                    <span style={{
+                      fontSize: 13,
+                      color: formSymptoms[key] ? C.teal : C.textPrimary,
+                      fontFamily: 'Arial, sans-serif',
+                      fontWeight: formSymptoms[key] ? 600 : 400,
+                      flex: 1
+                    }}>
                       {key === 'fever' && t.form.fever}
                       {key === 'headache' && t.form.headache}
                       {key === 'jointPain' && t.form.jointPain}
@@ -360,44 +625,125 @@ export default function Home() {
                       {key === 'breathing' && t.form.breathing}
                       {key === 'waterZone' && t.form.waterZone}
                     </span>
+                    {formSymptoms[key] && <ChevronRight size={14} color={C.teal} />}
                   </label>
                 ))}
               </div>
+
               <button
                 type="submit"
                 disabled={formLoading}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-xs font-black uppercase tracking-wider transition disabled:opacity-40"
+                style={{
+                  background: formLoading ? C.textMuted : C.teal,
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '12px 28px',
+                  borderRadius: 2,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  fontFamily: 'Arial, sans-serif',
+                  cursor: formLoading ? 'default' : 'pointer',
+                  letterSpacing: 0.3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  transition: 'background 0.2s'
+                }}
               >
-                {formLoading ? t.ui.loading : t.form.btn}
+                {formLoading
+                  ? <><RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} /> {t.ui.loading}</>
+                  : <><ClipboardCheck size={14} /> {t.form.btn}</>
+                }
               </button>
             </form>
+
             {formResult && <ResultCard data={formResult} />}
           </div>
         )}
 
-        {/* Tab 3: Interactive Chatbot Module */}
+        {/* TAB 3 — Chat */}
         {activeTab === 'chat' && (
-          <div className="flex-1 flex flex-col justify-between overflow-hidden animate-in fade-in duration-200 min-h-[450px]">
-            <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-1 scrollbar-thin scrollbar-thumb-neutral-800">
+          <div style={{ maxWidth: 680, display: 'flex', flexDirection: 'column', minHeight: 500 }}>
+            <div style={{ marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${C.border}` }}>
+              <h2 style={{ margin: '0 0 4px', fontSize: 20, fontWeight: 700, color: C.teal, fontFamily: 'Georgia, serif' }}>
+                {t.tabs.chat}
+              </h2>
+              <p style={{ margin: 0, fontSize: 13, color: C.textSecondary, fontFamily: 'Arial, sans-serif' }}>
+                AI-powered symptom analysis. Describe your symptoms in natural language.
+              </p>
+            </div>
+
+            <div style={{
+              flex: 1, minHeight: 360, maxHeight: 420,
+              overflowY: 'auto',
+              background: C.bgWhite,
+              border: `1px solid ${C.border}`,
+              borderRadius: 3,
+              padding: 16,
+              marginBottom: 12,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12
+            }}>
               {messages.map((msg, idx) => (
-                <div key={idx} className={`flex gap-3 max-w-[88%] ${msg.sender === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}>
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center border shrink-0 ${msg.sender === 'user' ? 'bg-blue-950 border-blue-800 text-blue-400' : 'bg-neutral-900 border-neutral-800 text-emerald-400'}`}>
-                    {msg.sender === 'user' ? <User size={14} /> : <Bot size={14} />}
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    flexDirection: msg.sender === 'user' ? 'row-reverse' : 'row',
+                    gap: 10,
+                    maxWidth: '88%',
+                    alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start'
+                  }}
+                >
+                  <div style={{
+                    width: 32, height: 32,
+                    borderRadius: 2,
+                    background: msg.sender === 'user' ? C.teal : C.tealLight,
+                    border: `1px solid ${msg.sender === 'user' ? C.tealMid : C.borderStrong}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    {msg.sender === 'user'
+                      ? <User size={14} color="#ffffff" />
+                      : <Bot size={14} color={C.teal} />}
                   </div>
-                  <div className="space-y-2 flex-1">
-                    <div className={`p-4 rounded-2xl text-sm leading-relaxed tracking-wide ${msg.sender === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-neutral-900 border border-neutral-800 text-neutral-200 rounded-tl-none'}`}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      padding: '10px 14px',
+                      borderRadius: 3,
+                      fontSize: 13,
+                      lineHeight: 1.6,
+                      fontFamily: 'Arial, sans-serif',
+                      background: msg.sender === 'user' ? C.teal : C.tealLight,
+                      color: msg.sender === 'user' ? '#ffffff' : C.textPrimary,
+                      border: `1px solid ${msg.sender === 'user' ? C.tealMid : C.borderStrong}`
+                    }}>
                       {msg.text}
                     </div>
                     {msg.isResult && msg.data && <ResultCard data={msg.data} />}
                   </div>
                 </div>
               ))}
+
               {chatLoading && (
-                <div className="flex gap-3 mr-auto items-center">
-                  <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-neutral-800 text-emerald-400 flex items-center justify-center animate-spin">
-                    <RefreshCw size={12} />
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 2,
+                    background: C.tealLight, border: `1px solid ${C.borderStrong}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    <RefreshCw size={13} color={C.teal} style={{ animation: 'spin 1s linear infinite' }} />
                   </div>
-                  <div className="bg-neutral-900 border border-neutral-800 text-neutral-400 px-3 py-2 rounded-2xl rounded-tl-none text-xs tracking-wide">
+                  <div style={{
+                    padding: '8px 14px',
+                    background: C.tealLight,
+                    border: `1px solid ${C.borderStrong}`,
+                    borderRadius: 3,
+                    fontSize: 12,
+                    color: C.textSecondary,
+                    fontFamily: 'Arial, sans-serif'
+                  }}>
                     {t.ui.loading}
                   </div>
                 </div>
@@ -405,31 +751,92 @@ export default function Home() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Chat Controls Action Bar */}
-            <form onSubmit={handleSendMessage} className="bg-neutral-900 border border-neutral-800 rounded-2xl p-2 flex gap-2 items-center shadow-2xl">
+            <form
+              onSubmit={handleSendMessage}
+              style={{
+                display: 'flex', gap: 8,
+                background: C.bgWhite,
+                border: `1px solid ${C.borderStrong}`,
+                borderRadius: 3,
+                padding: '6px 6px 6px 12px',
+                alignItems: 'center'
+              }}
+            >
               <input
                 value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
+                onChange={e => setChatInput(e.target.value)}
                 disabled={chatLoading || chatStep === 'complete'}
                 placeholder={t.chat.placeholder}
-                className="flex-1 bg-transparent px-3 py-2 text-sm focus:outline-none text-white placeholder-neutral-500 disabled:opacity-40"
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  fontSize: 13,
+                  color: C.textPrimary,
+                  fontFamily: 'Arial, sans-serif',
+                  opacity: (chatLoading || chatStep === 'complete') ? 0.5 : 1
+                }}
               />
               <button
                 type="submit"
                 disabled={!chatInput.trim() || chatLoading || chatStep === 'complete'}
-                className="bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl disabled:opacity-20 transition shrink-0"
+                style={{
+                  background: (!chatInput.trim() || chatLoading || chatStep === 'complete') ? C.textMuted : C.teal,
+                  border: 'none',
+                  color: '#ffffff',
+                  width: 36, height: 36,
+                  borderRadius: 2,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  transition: 'background 0.15s'
+                }}
               >
-                <Send size={14} />
+                <Send size={15} />
               </button>
             </form>
           </div>
         )}
 
-        {/* Dynamic Shared Disclaimer Footer */}
-        <p className="text-[10px] text-neutral-500 leading-relaxed bg-neutral-950 mt-4 p-3 rounded-xl border border-neutral-900 text-justify">
-          ⚠️ {t.ui.disclaimer}
-        </p>
+        {/* Disclaimer */}
+        <div style={{
+          marginTop: 32, padding: '12px 16px',
+          background: '#FFF8E1',
+          border: `1px solid #FFD54F`,
+          borderLeft: `4px solid ${C.amber}`,
+          borderRadius: 3,
+          display: 'flex', gap: 10, alignItems: 'flex-start'
+        }}>
+          <AlertTriangle size={15} color={C.amber} style={{ flexShrink: 0, marginTop: 1 }} />
+          <p style={{
+            margin: 0, fontSize: 11.5,
+            color: C.textSecondary,
+            fontFamily: 'Arial, sans-serif',
+            lineHeight: 1.6
+          }}>
+            <strong style={{ color: C.textPrimary }}>Disclaimer:</strong> {t.ui.disclaimer}
+          </p>
+        </div>
       </main>
+
+      {/* Footer */}
+      <footer style={{
+        background: C.teal,
+        color: 'rgba(255,255,255,0.7)',
+        padding: '16px 24px',
+        marginTop: 24,
+        fontFamily: 'Arial, sans-serif',
+        fontSize: 11,
+        textAlign: 'center' as const
+      }}>
+        <p style={{ margin: 0 }}>
+          © 2025 DengueAlert PK — Salim Habib University AI Core Deployment &nbsp;|&nbsp;
+          <span style={{ color: 'rgba(255,255,255,0.9)' }}>For medical emergencies dial 021-111-911-911</span>
+        </p>
+      </footer>
+
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
