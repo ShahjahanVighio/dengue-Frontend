@@ -78,7 +78,7 @@ const langData = {
     chat: {
       init: 'سلام! میں آپ کا ڈینگی الرٹ ہیلتھ اسسٹنٹ ہوں۔ کیا یہ تشخیصی اسیسمنٹ انسان کے لیے ہے یا جانور کے لیے؟',
       placeholder: 'اپنی علامات لکھیں یا اسسٹنٹ کو جواب دیں...',
-      onlineMsg: 'نوٹس: جانوروں کا تشخیصی ماڈیول فی الحال آف لائن ہے۔ ہم صرف انسانی طبی ڈیٹا پر کارروائی کر رہے ہیں۔ کیا مریض انسان ہے؟'
+      onlineMsg: 'نوٹس: جانوروں کا تشخیصی ماڈیول فی حالیہ آف لائن ہے۔ ہم صرف انسانی طبی ڈیٹا پر کارروائی کر رہے ہیں۔ کیا مریض انسان ہے؟'
     },
     ui: {
       reset: 'دوبارہ شروع کریں',
@@ -104,13 +104,13 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'info' | 'form' | 'chat'>('info');
   const t = langData[lang];
 
-  // Chat State
+  // Chat State Management
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [chatStep, setChatStep] = useState<'species' | 'symptoms' | 'complete'>('species');
 
-  // Form State
+  // Form Checklist State
   const [formSymptoms, setFormSymptoms] = useState({
     fever: false, headache: false, jointPain: false, bleeding: false, breathing: false, waterZone: false
   });
@@ -119,7 +119,6 @@ export default function Home() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize Chat context based on language selection
   useEffect(() => {
     setMessages([{ sender: 'bot', text: t.chat.init }]);
     setChatStep('species');
@@ -134,7 +133,7 @@ export default function Home() {
     setLang((prev) => (prev === 'en' ? 'ur' : 'en'));
   };
 
-  // Form Execution Engine
+  // Form Implementation Engine (Aligned strictly with API pipeline schema)
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
@@ -144,17 +143,17 @@ export default function Home() {
       symptoms: {
         fever: formSymptoms.fever ? 1 : 0,
         headache: formSymptoms.headache ? 1 : 0,
-        retro_orbital_pain: formSymptoms.headache ? 1 : 0, 
+        retro_orbital_pain: 0, 
         muscle_joint_pain: formSymptoms.jointPain ? 1 : 0,
         rash: 0, nausea: 0, vomiting: 0,
         mild_bleeding: formSymptoms.bleeding ? 1 : 0,
-        easy_bruising: 0, fatigue: 0, abdominal_pain: 0, persistent_vomiting: 0,
-        mucous_membrane_bleeding: 0,
+        easy_bruising: 0, fatigue: 0, abdominal_pain: 0, 
+        persistent_vomiting: 0, mucous_membrane_bleeding: 0,
         difficulty_breath: formSymptoms.breathing ? 1 : 0,
         restlessness: 0
       },
       risk_factors: {
-        recent_mosquito_bites: 1,
+        recent_mosquito_bites: 1, 
         travel_to_endemic_areas: 0,
         stagnant_water_zone: formSymptoms.waterZone ? 1 : 0,
         low_platelet_history: 0
@@ -168,7 +167,9 @@ export default function Home() {
         body: JSON.stringify(payload)
       });
       const data = await res.json();
-      if (data.status === 'success') setFormResult(data);
+      if (data.status === 'success') {
+        setFormResult(data);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -176,7 +177,7 @@ export default function Home() {
     }
   };
 
-  // Chat Execution Engine
+  // Natural Language Chat Analysis Vector
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim() || chatLoading) return;
@@ -215,7 +216,8 @@ export default function Home() {
           vomiting: textLower.includes('vomit') || textLower.includes('ulti') ? 1 : 0,
           mild_bleeding: textLower.includes('bleed') || textLower.includes('khoon') ? 1 : 0,
           easy_bruising: 0, fatigue: 0, abdominal_pain: 0, persistent_vomiting: 0,
-          mucous_membrane_bleeding: 0, difficulty_breath: textLower.includes('saans') || textLower.includes('breath') ? 1 : 0,
+          mucous_membrane_bleeding: 0, 
+          difficulty_breath: textLower.includes('saans') || textLower.includes('breath') ? 1 : 0,
           restlessness: 0
         },
         risk_factors: { recent_mosquito_bites: 1, travel_to_endemic_areas: 0, stagnant_water_zone: 0, low_platelet_history: 0 }
@@ -254,9 +256,9 @@ export default function Home() {
       </div>
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 space-y-3">
         <h3 className="font-bold text-white text-sm flex items-center gap-2"><ShieldCheck className="text-emerald-500" size={16} /> {t.ui.allowed}</h3>
-        <span className="text-emerald-400 font-bold text-xs">{data.treatment_plan.medications.allowed.join(', ')}</span>
+        <span className="text-emerald-400 font-bold text-xs">{data.treatment_plan.medications.allowed.length > 0 ? data.treatment_plan.medications.allowed.join(', ') : 'None'}</span>
         <h3 className="font-bold text-white text-sm flex items-center gap-2 pt-2 border-t border-neutral-800"><AlertTriangle className="text-red-500" size={16} /> {t.ui.forbidden}</h3>
-        <span className="text-red-400 font-bold text-xs">{data.treatment_plan.medications.forbidden.join(', ')}</span>
+        <span className="text-red-400 font-bold text-xs">{data.treatment_plan.medications.forbidden.length > 0 ? data.treatment_plan.medications.forbidden.join(', ') : 'None'}</span>
         <div className="bg-neutral-950 p-3 rounded-xl border border-neutral-800 text-xs text-neutral-300 mt-2">
           <strong>{t.ui.homeCare}</strong> {data.treatment_plan.home_care}
         </div>
@@ -285,7 +287,7 @@ export default function Home() {
         <div className="flex items-center gap-2">
           <button 
             onClick={toggleLanguage}
-            className="flex items-center gap-1.5 text-xs font-bold text-blue-400 hover:text-white px-3 py-2 rounded-xl border border-neutral-800 hover:bg-neutral-800 transition"
+            className="flex items-center gap-1.5 text-xs font-bold text-blue-400 hover:text-white px-3 py-2 rounded-xl border border-neutral-800 hover:bg-neutral-800 transition shadow-inner"
           >
             <Globe size={14} /> {lang === 'en' ? 'اردو' : 'English'}
           </button>
@@ -342,11 +344,11 @@ export default function Home() {
                 <p className="text-xs text-neutral-400">{t.form.desc}</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                {Object.keys(formSymptoms).map((key) => (
+                {(Object.keys(formSymptoms) as Array<keyof typeof formSymptoms>).map((key) => (
                   <label key={key} className="flex items-center gap-3 bg-neutral-950 p-4 rounded-xl border border-neutral-800 hover:border-neutral-700 transition cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={(formSymptoms as any)[key]}
+                      checked={formSymptoms[key]}
                       onChange={(e) => setFormSymptoms(prev => ({ ...prev, [key]: e.target.checked }))}
                       className="w-4 h-4 rounded text-blue-600 bg-neutral-900 border-neutral-800 focus:ring-0"
                     />
@@ -375,7 +377,7 @@ export default function Home() {
 
         {/* Tab 3: Interactive Chatbot Module */}
         {activeTab === 'chat' && (
-          <div className="flex-1 flex flex-col justify-between overflow-hidden animate-in fade-in duration-200 min-h-[500px]">
+          <div className="flex-1 flex flex-col justify-between overflow-hidden animate-in fade-in duration-200 min-h-[450px]">
             <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-1 scrollbar-thin scrollbar-thumb-neutral-800">
               {messages.map((msg, idx) => (
                 <div key={idx} className={`flex gap-3 max-w-[88%] ${msg.sender === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}>
